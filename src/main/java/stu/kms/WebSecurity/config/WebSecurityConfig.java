@@ -1,5 +1,6 @@
 package stu.kms.WebSecurity.config;
 
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,13 +8,16 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import stu.kms.WebSecurity.security.CustomAccessDeniedHandler;
 import stu.kms.WebSecurity.security.CustomLoginSuccessHandler;
-import stu.kms.WebSecurity.security.CustomNoOpPasswordEncoder;
+import stu.kms.WebSecurity.security.CustomUserDetailsService;
 
 import javax.sql.DataSource;
 
@@ -23,6 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private UserDetailsService customUserDetailsService;
 
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
@@ -36,17 +43,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder passwordEncoder () {
-        return new CustomNoOpPasswordEncoder();
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public PersistentTokenRepository tokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        return jdbcTokenRepository;
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        String userQuery = "select username, password, enabled from users where username = ?";
-        String authQuery = "select username, authority from authorities where username = ?";
-        auth.jdbcAuthentication()
-                .dataSource(dataSource)
-                .usersByUsernameQuery(userQuery)
-                .authoritiesByUsernameQuery(authQuery);
+        auth.userDetailsService(customUserDetailsService);
+//        String userQuery = "select userid, userpw, enabled from tbl_member where userid = ?";
+//        String authQuery = "select userid, auth from tbl_member_auth where userid = ?";
+//        auth.jdbcAuthentication()
+//                .dataSource(dataSource)
+//                .usersByUsernameQuery(userQuery)
+//                .authoritiesByUsernameQuery(authQuery);
 
 //        auth.inMemoryAuthentication()
 //                .withUser("member").password(passwordEncoder().encode("member")).roles("MEMBER")
@@ -67,9 +82,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(successHandler());
 
         http.logout()
-                .logoutUrl("/customLogout");
+                .logoutUrl("/customLogout")
+                .deleteCookies("remember-me", "JSESSIONID");
 
         http.exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler());
+
+        http.rememberMe()
+                .tokenRepository(tokenRepository())
+                .tokenValiditySeconds(604800);
     }
 }
