@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="stu.kms.WebSecurity.mapper.BoardMapper">
+
+    <select id="getList" resultType="stu.kms.WebSecurity.domain.BoardVO">
+        select * from TBL_BOARD where BNO > 0
+    </select>
+
+    <sql id="criteria">
+        <trim prefix="(" suffix=") AND " prefixOverrides="OR">
+            <foreach collection="typeArr" item="type">
+                <trim prefix="OR">
+                    <choose>
+                        <when test="type == 'T'.toString()">
+                            TITLE like '%'||#{keyword}||'%'
+                        </when>
+                        <when test="type == 'C'.toString()">
+                            CONTENT like '%'||#{keyword}||'%'
+                        </when>
+                        <when test="type == 'W'.toString()">
+                            WRITER like '%'||#{keyword}||'%'
+                        </when>
+                    </choose>
+                </trim>
+            </foreach>
+        </trim>
+    </sql>
+
+    <select id="getListWithPaging" resultType="stu.kms.WebSecurity.domain.BoardVO">
+        <![CDATA[
+            select BNO, TITLE, CONTENT, WRITER, REGDATE, UPDATEDATE, REPLYCNT
+            from (
+                select /*+INDEX_DESC(TBL_BOARD PK_BOARD)*/
+                       ROWNUM RN, BNO, TITLE, CONTENT, WRITER, REGDATE, UPDATEDATE, REPLYCNT
+                from TBL_BOARD
+                where
+        ]]>
+        <include refid="criteria"></include>
+        <![CDATA[
+            rownum <= #{pageNum} * #{amount}
+            )
+        where RN > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <select id="getTotalCount" resultType="int">
+        select count(*) from TBL_BOARD
+        where
+        <include refid="criteria"></include>
+        bno > 0
+    </select>
+
+    <insert id="insert">
+        insert into TBL_BOARD (bno, title, content, writer)
+        values (SEQ_BOARD.nextval, #{title}, #{content}, #{writer})
+    </insert>
+
+    <insert id="insertSelectKey">
+        <selectKey keyProperty="bno" order="BEFORE" resultType="long">
+            select SEQ_BOARD.nextval from dual
+        </selectKey>
+        insert into tbl_board (bno, title, content, writer)
+        values (#{bno}, #{title}, #{content}, #{writer})
+    </insert>
+
+    <select id="read" resultType="stu.kms.WebSecurity.domain.BoardVO">
+        select * from TBL_BOARD where BNO = #{bno}
+    </select>
+
+    <delete id="delete">
+        delete from TBL_BOARD where BNO = #{bno}
+    </delete>
+
+    <update id="update">
+        update TBL_BOARD set TITLE = #{title}, CONTENT = #{content}, WRITER = #{writer}, UPDATEDATE = sysdate
+        where BNO = #{bno}
+    </update>
+
+    <update id="updateReplyCnt">
+        update TBL_BOARD set REPLYCNT = REPLYCNT + #{amount} where BNO = #{bno}
+    </update>
+</mapper>
