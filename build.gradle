@@ -35,11 +35,18 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
+
     implementation group: 'org.apache.tomcat', name: 'tomcat-jasper', version: '9.0.60'
-// https://mvnrepository.com/artifact/javax.servlet/jstl
     implementation group: 'javax.servlet', name: 'jstl', version: '1.2'
-// https://mvnrepository.com/artifact/org.springframework.security/spring-security-taglibs
     implementation group: 'org.springframework.security', name: 'spring-security-taglibs', version: '5.6.2'
+    implementation group: 'net.coobird', name: 'thumbnailator', version: '0.4.17'
+    implementation group: 'org.springframework', name: 'spring-tx', version: '5.3.17'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.13.2'
+//    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.2.1'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.9.0'
+    runtimeOnly group: 'org.aspectj', name: 'aspectjrt', version: '1.9.9'
+    runtimeOnly group: 'org.aspectj', name: 'aspectjweaver', version: '1.9.9'
+    implementation group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
 
 }
 

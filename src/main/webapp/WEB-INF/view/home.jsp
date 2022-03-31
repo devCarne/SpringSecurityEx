@@ -6,4 +6,7 @@
 <body>
 <h1>Home</h1>
 </body>
+<script>
+    self.location="/board/list";
+</script>
 </html>

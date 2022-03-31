@@ -11,10 +11,10 @@ import stu.kms.WebSecurity.domain.MemberVO;
 @Slf4j
 public class CommonController {
 
-    @GetMapping("/")
-    public void home() {
-
-    }
+//    @GetMapping("/")
+//    public void home() {
+//
+//    }
 
     @GetMapping("/accessError")
     public void accessDenied(Authentication auth, Model model) {
